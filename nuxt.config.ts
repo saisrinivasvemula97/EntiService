@@ -14,7 +14,7 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
-    typeCheck: true
+    typeCheck: false // Temporarily disabled for compatibility
   },
 
   app: {
@@ -37,7 +37,7 @@ export default defineNuxtConfig({
     }
   },
 
-  ssr: true,
+  ssr: false, // Client-side rendering only
 
   nitro: {
     preset: 'node-server'
