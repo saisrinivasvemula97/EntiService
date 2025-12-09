@@ -1,33 +1,34 @@
 <template>
-  <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+  <header class="shadow-sm border-b mode-transition" :style="{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center py-4">
         <div class="flex items-center">
-          <NuxtLink to="/" class="text-2xl font-bold text-gray-900 dark:text-white">
+          <NuxtLink to="/" class="text-2xl font-bold" :style="{ color: 'var(--theme-text)' }">
             Enti?
           </NuxtLink>
         </div>
 
         <div class="flex items-center space-x-4">
           <!-- User status -->
-          <div v-if="isAuthenticated" class="text-sm text-gray-600 dark:text-gray-300">
+          <div v-if="isAuthenticated" class="text-sm" :style="{ color: 'var(--theme-text-secondary)' }">
             Welcome, {{ user?.username }}
           </div>
-          <div v-else class="text-sm text-gray-600 dark:text-gray-300">
+          <div v-else class="text-sm" :style="{ color: 'var(--theme-text-secondary)' }">
             Demo Mode
           </div>
 
           <!-- Mode Toggle Button -->
           <button
             @click="emit('toggleMode')"
-            class="p-2 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            class="p-2 rounded-md transition-all interactive-element"
+            :style="{ color: 'var(--theme-text-secondary)' }"
             :title="`Current mode: ${currentTimeMode}`"
           >
             <ClockIcon class="w-5 h-5" />
           </button>
 
           <!-- Settings -->
-          <button class="p-2 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <button class="p-2 rounded-md transition-all interactive-element" :style="{ color: 'var(--theme-text-secondary)' }">
             <CogIcon class="w-5 h-5" />
           </button>
         </div>

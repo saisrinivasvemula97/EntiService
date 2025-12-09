@@ -2,7 +2,7 @@
   <div class="container mx-auto px-4 py-8">
     <!-- Welcome Section -->
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold mb-4">Welcome to Enti?</h1>
+      <h1 class="text-3xl font-bold text-gray-600 dark:text-gray-300 mb-4">Welcome to Enti?</h1>
       <p class="text-lg text-gray-600 dark:text-gray-300 mb-4">
         Your adaptive knowledge discovery platform
       </p>

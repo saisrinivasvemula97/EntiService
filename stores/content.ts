@@ -5,6 +5,9 @@ import type { ContentItem, FeedResponse, DiscoveryResponse, ContentInteraction, 
 import type { FeedState, LoadingState } from '~/types/ui'
 
 export const useContentStore = defineStore('content', () => {
+  // API composable
+  const { content, discovery } = useApi()
+
   // State
   const feedState = ref<FeedState>({
     items: [],
@@ -136,46 +139,24 @@ export const useContentStore = defineStore('content', () => {
     loading.value.error = undefined
 
     try {
-      // Mock API call - simulate network latency
-      await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400))
+      const response = await content.getFeed(query)
 
-      const mockItems = generateMockContent()
-        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      if (response.success && response.data) {
+        // For load more, append to existing items
+        if (feedState.value.pagination.isLoadingMore) {
+          feedState.value.items = [...feedState.value.items, ...response.data.feed]
+        } else {
+          feedState.value.items = response.data.feed
+        }
 
-      // Apply filters
-      let filteredItems = mockItems
-
-      if (query.contentType) {
-        filteredItems = filteredItems.filter(item => item.contentType === query.contentType)
+        feedState.value.pagination = {
+          currentPage: Math.floor((query.offset || 0) / (query.limit || 20)) + 1,
+          totalPages: Math.ceil(response.data.pagination.total / (query.limit || 20)),
+          hasMore: response.data.pagination.hasMore,
+          isLoadingMore: false
+        }
+        feedState.value.filters = query
       }
-
-      if (query.sources?.length) {
-        filteredItems = filteredItems.filter(item =>
-          query.sources!.includes(item.sourceName)
-        )
-      }
-
-      if (query.minReliability !== undefined) {
-        filteredItems = filteredItems.filter(item =>
-          item.reliabilityScore >= query.minReliability!
-        )
-      }
-
-      // Paginate
-      const limit = query.limit || 20
-      const offset = query.offset || 0
-      const startIndex = offset
-      const endIndex = startIndex + limit
-      const paginatedItems = filteredItems.slice(startIndex, endIndex)
-
-      feedState.value.items = paginatedItems
-      feedState.value.pagination = {
-        currentPage: Math.floor(offset / limit) + 1,
-        totalPages: Math.ceil(filteredItems.length / limit),
-        hasMore: endIndex < filteredItems.length,
-        isLoadingMore: false
-      }
-      feedState.value.filters = query
 
       return true
     } catch (error) {
@@ -254,54 +235,27 @@ export const useContentStore = defineStore('content', () => {
   }
 
   const discoverContent = async (): Promise<DiscoveryResponse> => {
-    // Mock discovery suggestions
-    await new Promise(resolve => setTimeout(resolve, 600))
-
-    const suggestions = [
-      {
-        suggestedInterest: {
-          name: 'DevOps & Infrastructure',
-          reason: 'Based on your interest in Programming and recent articles about scalable systems'
-        },
-        sampleContent: [
-          {
-            id: 'discovery-1',
-            title: 'Kubernetes for Developers',
-            sourceName: 'Docker Blog',
-            reliabilityScore: 0.92,
-            relevanceScore: 0.85
-          }
-        ]
-      },
-      {
-        suggestedInterest: {
-          name: 'Blockchain Technology',
-          reason: 'Related to your programming interests and distributed systems'
-        },
-        sampleContent: [
-          {
-            id: 'discovery-2',
-            title: 'Smart Contract Security Patterns',
-            sourceName: 'Ethereum Foundation',
-            reliabilityScore: 0.88,
-            relevanceScore: 0.78
-          }
-        ]
+    try {
+      const response = await discovery.getSuggestions()
+      if (response.success && response.data) {
+        return response.data
       }
-    ]
-
-    return { suggestions }
+      // Fallback to empty response if API fails
+      return { suggestions: [] }
+    } catch (error) {
+      console.error('Failed to get discovery suggestions:', error)
+      return { suggestions: [] }
+    }
   }
 
   const searchContent = async (query: string, filters?: any): Promise<any[]> => {
-    // Mock search
+    // Mock search using current feed items
     await new Promise(resolve => setTimeout(resolve, 400))
 
-    const mockItems = generateMockContent()
-    const filteredResults = mockItems
+    const filteredResults = feedState.value.items
       .filter(item =>
         item.title.toLowerCase().includes(query.toLowerCase()) ||
-        item.summary.toLowerCase().includes(query.toLowerCase())
+        (item.summary && item.summary.toLowerCase().includes(query.toLowerCase()))
       )
       .slice(0, 10)
 
